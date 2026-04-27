@@ -1,9 +1,33 @@
+import { useEffect, useState } from 'react';
+
 export default function Modal({ data, onClose }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setIsOpen(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setTimeout(() => onClose(), 260);
+  };
+
   if (!data) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.6)] ">
-      <div className="bg-white rounded-xl p-6 w-[90%] max-w-lg max-h-full overflow-y-auto overflow-x-hidden relative">
-        <button className="absolute top-3 right-3 text-xl text-gray-500 hover:text-black" onClick={onClose}>
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-colors duration-300 ${
+        isOpen ? 'bg-[rgba(0,0,0,0.62)]' : 'bg-[rgba(0,0,0,0)]'
+      }`}
+      onClick={handleClose}
+    >
+      <div
+        className={`relative w-[90%] max-w-lg max-h-full overflow-y-auto overflow-x-hidden rounded-2xl border border-white/30 bg-white/95 p-6 shadow-2xl backdrop-blur-md transition-all duration-300 ${
+          isOpen ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0'
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button className="absolute top-3 right-3 text-xl text-gray-500 hover:text-black" onClick={handleClose}>
           ✕
         </button>
 
