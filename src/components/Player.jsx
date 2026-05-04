@@ -1,13 +1,15 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { getMovementInput, setMovementKeyState, updateMovement } from './cameraMovement';
+import { setMovementKeyState, updateMovement } from './cameraMovement';
 
 export default function Player({
   joystickInput,
   lookInput,
   mouseLookEnabled = true,
   touchGameplayEnabled = false,
+  /** When true (WebXR and/or webcam hand mode), apply look from `lookInput` like touch sticks; mouse drag look is off. */
+  xrAnalogLookEnabled = false,
   recenterSignal = 0,
   lookEnabled = true,
 }) {
@@ -117,6 +119,7 @@ export default function Player({
     };
     const mouseMove = (e) => {
       if (!mouseLookEnabled || !lookEnabled) return;
+      if (xrAnalogLookEnabled) return;
 
       // Drag-to-look: only rotate/pan while holding mouse button.
       if (!isLookDragging.current) return;
@@ -140,7 +143,7 @@ export default function Player({
     const mouseDown = (e) => {
       if (!mouseLookEnabled || !lookEnabled) return;
       if (e.button !== 0) return;
-      if (touchGameplayEnabled) return;
+      if (touchGameplayEnabled || xrAnalogLookEnabled) return;
       isLookDragging.current = true;
       lastMousePosition.current = { x: e.clientX, y: e.clientY };
     };
@@ -166,7 +169,7 @@ export default function Player({
       window.removeEventListener('mousedown', mouseDown);
       window.removeEventListener('mouseup', mouseUp);
     };
-  }, [mouseLookEnabled, touchGameplayEnabled, lookEnabled]);
+  }, [mouseLookEnabled, touchGameplayEnabled, xrAnalogLookEnabled, lookEnabled]);
 
   useEffect(() => {
     if (lookEnabled) return;
@@ -218,7 +221,7 @@ export default function Player({
       pitch.current -= mouseDelta.current.y * mouseSensitivity;
     }
 
-    if (!recenterAnim.current.active && lookEnabled && touchGameplayEnabled) {
+    if (!recenterAnim.current.active && lookEnabled && (touchGameplayEnabled || xrAnalogLookEnabled)) {
       yaw.current -= lookX * joystickLookSpeed * delta;
       pitch.current -= lookY * joystickLookSpeed * delta;
     }

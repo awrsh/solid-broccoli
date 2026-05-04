@@ -10,6 +10,8 @@ import Lights from './Lights';
 import Picture from './Picture';
 import Modal from './Modal';
 import Joystick from './Joystick';
+import XrHandLocomotion from './XrHandLocomotion';
+import WebcamHandBridge from './WebcamHandBridge';
 import { ModalProvider, useModal } from './ModalContext';
 
 const AUTO_MODAL_OPEN_DISTANCE = 8.5;
@@ -146,6 +148,8 @@ function SceneInner() {
   const [joystickMouseMode, setJoystickMouseMode] = useState(false);
   const [touchGameplayEnabled, setTouchGameplayEnabled] = useState(false);
   const [flatGeometryActive, setFlatGeometryActive] = useState(false);
+  const [webcamHandsEnabled, setWebcamHandsEnabled] = useState(false);
+  const [webcamError, setWebcamError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const moveJoystickInput = useRef({ x: 0, y: 0 });
   const lookJoystickInput = useRef({ x: 0, y: 0 });
@@ -183,6 +187,13 @@ function SceneInner() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (isInVr) {
+      setWebcamHandsEnabled(false);
+      setWebcamError('');
+    }
+  }, [isInVr]);
 
   useEffect(() => {
     const handleFullscreenChange = async () => {
@@ -269,7 +280,7 @@ function SceneInner() {
       setVrError('');
 
       const session = await navigator.xr.requestSession('immersive-vr', {
-        optionalFeatures: ['local-floor'],
+        optionalFeatures: ['local-floor', 'hand-tracking'],
       });
 
       if (
@@ -284,7 +295,7 @@ function SceneInner() {
           // Preflight binding to avoid crashing inside setSession on incompatible runtimes/polyfills.
           // eslint-disable-next-line no-new
           new window.XRWebGLBinding(session, gl.getContext());
-        } catch (bindingError) {
+        } catch {
           await session.end();
           throw new Error('XR runtime is incompatible with this browser/polyfill.');
         }
@@ -306,6 +317,11 @@ function SceneInner() {
   }, []);
   const handleLookJoystickMove = useCallback((x, y) => {
     lookJoystickInput.current = { x, y };
+  }, []);
+
+  const handleWebcamError = useCallback((msg) => {
+    setWebcamError(typeof msg === 'string' ? msg : '');
+    if (msg) setWebcamHandsEnabled(false);
   }, []);
 
   const galleryPictures = useMemo(() => {
@@ -373,15 +389,21 @@ function SceneInner() {
           mouseLookEnabled
           lookInput={lookJoystickInput}
           touchGameplayEnabled={touchGameplayEnabled}
+          xrAnalogLookEnabled={isInVr || webcamHandsEnabled}
           recenterSignal={recenterSignal}
           lookEnabled={!activeItem}
         />
+        {isInVr && <XrHandLocomotion moveRef={joystickInput} lookRef={lookJoystickInput} />}
         <Room />
 
         {galleryPictures.map((p) => (
           <Picture key={p.id} data={p} onClick={() => setActiveItem(p)} />
         ))}
       </Canvas>
+
+      {webcamHandsEnabled && !isInVr && (
+        <WebcamHandBridge moveRef={joystickInput} lookRef={lookJoystickInput} onError={handleWebcamError} />
+      )}
 
       {touchGameplayEnabled && (
         <>
@@ -409,6 +431,15 @@ function SceneInner() {
             onClick: () => setFlatGeometryActive((v) => !v),
             active: flatGeometryActive,
           },
+          {
+            id: 'wh',
+            label: 'Webcam hand control (MediaPipe)',
+            onClick: () => {
+              setWebcamError('');
+              setWebcamHandsEnabled((v) => !v);
+            },
+            active: webcamHandsEnabled,
+          },
         ].map((action, idx) => (
           <button
             key={action.id}
@@ -424,7 +455,13 @@ function SceneInner() {
             }}
             title={action.label}
           >
-            {action.id === 'recenter' ? 'RC' : action.id === 'touch' ? 'TG' : 'FG'}
+            {action.id === 'recenter'
+              ? 'RC'
+              : action.id === 'touch'
+                ? 'TG'
+                : action.id === 'flat'
+                  ? 'FG'
+                  : 'WH'}
           </button>
         ))}
         <button
@@ -440,6 +477,7 @@ function SceneInner() {
         <button
           type="button"
           onClick={handleEnterVr}
+          title="Hand tracking: move with left wrist vs head; look with right wrist (Quest / compatible headset)."
           className="fixed left-1/2 -translate-x-1/2 bottom-4 z-50 rounded-md border border-[#7eaecb] bg-[#f5fbff] px-4 py-2 text-sm text-[#1f5f85] hover:bg-[#e4f2fb]"
         >
           {isInVr ? 'VR Active' : 'Enter VR'}
@@ -448,6 +486,11 @@ function SceneInner() {
       {vrError && (
         <div className="fixed right-4 bottom-20 z-50 max-w-[280px] rounded-md border border-red-300/30 bg-black/70 px-3 py-2 text-xs text-red-200">
           {vrError}
+        </div>
+      )}
+      {webcamError && (
+        <div className="fixed right-4 bottom-44 z-50 max-w-[280px] rounded-md border border-amber-300/35 bg-black/70 px-3 py-2 text-xs text-amber-100">
+          {webcamError}
         </div>
       )}
 
