@@ -7,7 +7,7 @@ import {
   fetchHandControlMap,
 } from '../handControlMap';
 
-/**
+/** 
  * معنای حالت‌ها مطابق Handtrack.js (مدل جعبه‌ای + برچسب‌های open/closed/pinch/point):
  * https://victordibia.com/handtrack.js/#/docs — جزئیات معنا در README کتابخانه:
  * https://github.com/victordibia/handtrack.js/blob/master/README.md
