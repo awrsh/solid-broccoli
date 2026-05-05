@@ -22,8 +22,7 @@ import {
 
 const MP_VERSION = '0.10.21';
 const WASM_BASE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;
-const MODEL_URL =
-  'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const MODEL_URL = '/hand_landmarker.task';
 
 /** همان `scoreThreshold` پیش‌فرض `handTrack.load` در مستندات Handtrack.js (۰.۶). */
 const HT_DEFAULT_SCORE_THRESHOLD = 0.6;
