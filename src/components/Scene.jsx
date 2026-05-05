@@ -319,9 +319,10 @@ function SceneInner() {
     lookJoystickInput.current = { x, y };
   }, []);
 
-  const handleWebcamError = useCallback((msg) => {
+  /** `fatal`: خطای دوربین/اجازه — حالت وب‌کم خاموش می‌شود. خطای فقط مدل ردیابی، تصویر را نگه می‌دارد. */
+  const handleWebcamError = useCallback((msg, { fatal = true } = {}) => {
     setWebcamError(typeof msg === 'string' ? msg : '');
-    if (msg) setWebcamHandsEnabled(false);
+    if (fatal && msg) setWebcamHandsEnabled(false);
   }, []);
 
   const galleryPictures = useMemo(() => {
@@ -390,6 +391,7 @@ function SceneInner() {
           lookInput={lookJoystickInput}
           touchGameplayEnabled={touchGameplayEnabled}
           xrAnalogLookEnabled={isInVr || webcamHandsEnabled}
+          analogLookSpeedScale={webcamHandsEnabled ? 0.32 : 1}
           recenterSignal={recenterSignal}
           lookEnabled={!activeItem}
         />

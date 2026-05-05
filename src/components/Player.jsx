@@ -10,6 +10,8 @@ export default function Player({
   touchGameplayEnabled = false,
   /** When true (WebXR and/or webcam hand mode), apply look from `lookInput` like touch sticks; mouse drag look is off. */
   xrAnalogLookEnabled = false,
+  /** ضرب در سرعت چرخش با `lookInput` (برای وب‌کم معمولا کمتر از ۱). */
+  analogLookSpeedScale = 1,
   recenterSignal = 0,
   lookEnabled = true,
 }) {
@@ -222,8 +224,9 @@ export default function Player({
     }
 
     if (!recenterAnim.current.active && lookEnabled && (touchGameplayEnabled || xrAnalogLookEnabled)) {
-      yaw.current -= lookX * joystickLookSpeed * delta;
-      pitch.current -= lookY * joystickLookSpeed * delta;
+      const lookSpeed = joystickLookSpeed * analogLookSpeedScale;
+      yaw.current -= lookX * lookSpeed * delta;
+      pitch.current -= lookY * lookSpeed * delta;
     }
 
     pitch.current = THREE.MathUtils.clamp(pitch.current, -pitchLimit, pitchLimit);

@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "_labels": "MediaPipe landmarks: اشاره→نگاه | پینچ→جلو/عقب (y مچ) | مشت→عقب ثابت",
+  "move": {
+    "enabled": true,
+    "pinchForwardBackEnabled": true,
+    "closedBackwardEnabled": true,
+    "closedBackwardStrength": 0.82,
+    "allowForward": true,
+    "allowBackward": true
+  },
+  "look": {
+    "enabled": true,
+    "axes": {
+      "allowAxisXNegative": true,
+      "allowAxisXPositive": true,
+      "allowAxisYNegative": true,
+      "allowAxisYPositive": true
+    }
+  }
+}

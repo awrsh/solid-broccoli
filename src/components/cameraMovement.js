@@ -54,6 +54,10 @@ const resolveMovementInput = (rawX, rawY) => {
   return { x: x / length, y: y / length };
 };
 
+const KEYBOARD_MOVE_THRESHOLD = 0.1;
+/** وب‌کم / جوی‌استیک بدون کلید؛ آستانه پایین‌تر تا جلو با پینچ قطع نشود. */
+const ANALOG_MOVE_THRESHOLD = 0.045;
+
 export const updateMovement = (delta, controls, camera, walls, analogInput = { x: 0, y: 0 }) => {
   const moveSpeed = 5 * delta;
   const previousPosition = camera.position.clone();
@@ -63,19 +67,23 @@ export const updateMovement = (delta, controls, camera, walls, analogInput = { x
   const rawY = keyboardY || analogInput.y;
   const movementInput = resolveMovementInput(rawX, rawY);
 
-  if (movementInput.x > 0.1) {
+  const analogOnly = keyboardX === 0 && keyboardY === 0;
+  const thX = analogOnly ? ANALOG_MOVE_THRESHOLD : KEYBOARD_MOVE_THRESHOLD;
+  const thY = analogOnly ? ANALOG_MOVE_THRESHOLD : KEYBOARD_MOVE_THRESHOLD;
+
+  if (movementInput.x > thX) {
     const scale = keyboardX > 0 ? 1 : Math.abs(movementInput.x);
     controls.moveRight(moveSpeed * scale);
   }
-  if (movementInput.x < -0.1) {
+  if (movementInput.x < -thX) {
     const scale = keyboardX < 0 ? 1 : Math.abs(movementInput.x);
     controls.moveRight(-moveSpeed * scale);
   }
-  if (movementInput.y < -0.1) {
+  if (movementInput.y < -thY) {
     const scale = keyboardY < 0 ? 1 : Math.abs(movementInput.y);
     controls.moveForward(moveSpeed * scale);
   }
-  if (movementInput.y > 0.1) {
+  if (movementInput.y > thY) {
     const scale = keyboardY > 0 ? 1 : Math.abs(movementInput.y);
     controls.moveForward(-moveSpeed * scale);
   }
@@ -90,7 +98,6 @@ export const getMovementInput = (analogInput = { x: 0, y: 0 }) => {
   const keyboardY = getAxisFromKeys(['ArrowDown', 's'], ['ArrowUp', 'w']);
   const rawX = keyboardX || analogInput.x;
   const rawY = keyboardY || analogInput.y;
-
   return resolveMovementInput(rawX, rawY);
 };
 
